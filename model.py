@@ -1,10 +1,19 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torchaudio.models.decoder import ctc_decoder
 
 
 class CRNN(nn.Module):
-    def __init__(self, cnn_output_height, gru_hidden_size, gru_num_layers, num_classes):
+    def __init__(
+        self,
+        cnn_output_height,
+        gru_hidden_size,
+        gru_num_layers,
+        num_classes,
+        num_digits,
+        tokens,
+    ):
         super(CRNN, self).__init__()
         self.conv1 = nn.Conv2d(1, 32, kernel_size=(3, 3))
         self.norm1 = nn.InstanceNorm2d(32)
@@ -23,6 +32,18 @@ class CRNN(nn.Module):
             bidirectional=True,
         )
         self.fc = nn.Linear(gru_hidden_size * 2, num_classes)
+        self.num_digits = num_digits
+        self.cnn_output_height = cnn_output_height
+
+        self.beam_search_decoder = ctc_decoder(
+            lexicon=None,
+            tokens=tokens,
+            beam_size=100,
+            lm_weight=0,
+            blank_token=" ",
+            sil_token=" ",
+            unk_word=" ",
+        )
 
     def forward(self, x):
         batch_size = x.shape[0]
