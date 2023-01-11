@@ -212,6 +212,5 @@ dmypy.json
 cython_debug/
 
 *.pt
-output/*.png
 .idea/
 EMNIST/
